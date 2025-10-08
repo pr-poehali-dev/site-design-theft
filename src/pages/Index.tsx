@@ -46,7 +46,6 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
   const [sortBy, setSortBy] = useState('popular');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -313,8 +312,7 @@ const Index = () => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     const matchesPlatform = selectedPlatform === 'all' || product.platform === selectedPlatform;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
-    return matchesCategory && matchesPlatform && matchesSearch && matchesPrice;
+    return matchesCategory && matchesPlatform && matchesSearch;
   });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -364,31 +362,31 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0F]">
-      <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0A0A0F]/98 backdrop-blur-lg shadow-lg' : 'bg-[#0A0A0F]'} border-b border-white/5`}>
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0A0A0F]/98 backdrop-blur-lg shadow-lg shadow-purple-500/5' : 'bg-[#0A0A0F]'} border-b border-white/5`}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2 cursor-pointer group">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center transform group-hover:scale-105 transition-transform">
+              <button className="flex items-center gap-2 group" onClick={() => { setSelectedCategory('all'); setSelectedPlatform('all'); }}>
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center transform group-hover:scale-110 transition-all duration-300 shadow-lg shadow-purple-500/50">
                   <Icon name="ShoppingBag" size={20} className="text-white" />
                 </div>
                 <h1 className="text-xl font-bold text-white tracking-tight hidden sm:block">KUPIKOD</h1>
-              </div>
+              </button>
 
               <nav className="hidden lg:flex items-center gap-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/5">
+                    <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200">
                       Платформы
-                      <Icon name="ChevronDown" size={16} className="ml-1" />
+                      <Icon name="ChevronDown" size={16} className="ml-1 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-[#1A1A24] border-white/10">
+                  <DropdownMenuContent className="bg-[#1A1A24] border-white/10 animate-in fade-in-0 zoom-in-95">
                     {platforms.slice(1).map(platform => (
                       <DropdownMenuItem
                         key={platform.id}
                         onClick={() => setSelectedPlatform(platform.id)}
-                        className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer"
+                        className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer transition-colors duration-150"
                       >
                         <Icon name={platform.icon as any} size={16} className="mr-2" />
                         {platform.name}
@@ -399,21 +397,21 @@ const Index = () => {
 
                 <Button
                   variant="ghost"
-                  className="text-gray-300 hover:text-white hover:bg-white/5"
+                  className="text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
                   onClick={() => setSelectedCategory('games')}
                 >
                   Игры
                 </Button>
                 <Button
                   variant="ghost"
-                  className="text-gray-300 hover:text-white hover:bg-white/5"
+                  className="text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
                   onClick={() => setSelectedCategory('topups')}
                 >
                   Пополнения
                 </Button>
                 <Button
                   variant="ghost"
-                  className="text-gray-300 hover:text-white hover:bg-white/5"
+                  className="text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
                   onClick={() => setSelectedCategory('subscriptions')}
                 >
                   Подписки
@@ -422,14 +420,14 @@ const Index = () => {
             </div>
 
             <div className="flex-1 max-w-md mx-4 hidden md:block">
-              <div className="relative">
-                <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <div className="relative group">
+                <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 transition-colors group-focus-within:text-purple-400" />
                 <Input
                   type="text"
                   placeholder="Поиск игр, подписок..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 focus:border-purple-500/50 transition-all"
+                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 focus:border-purple-500/50 transition-all duration-300"
                 />
               </div>
             </div>
@@ -437,7 +435,7 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
-                className="text-gray-300 hover:text-white hover:bg-white/5 hidden sm:flex"
+                className="text-gray-300 hover:text-white hover:bg-white/5 hidden sm:flex transition-all duration-200"
                 onClick={() => setShowAuthModal(true)}
               >
                 <Icon name="User" size={20} />
@@ -446,10 +444,10 @@ const Index = () => {
 
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" className="relative text-gray-300 hover:text-white hover:bg-white/5">
+                  <Button variant="ghost" className="relative text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200">
                     <Icon name="ShoppingCart" size={20} />
                     {cart.length > 0 && (
-                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-purple-600 text-white text-xs border-0 animate-scale-in">
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-purple-600 text-white text-xs border-0 animate-scale-in shadow-lg shadow-purple-500/50">
                         {cart.length}
                       </Badge>
                     )}
@@ -462,16 +460,16 @@ const Index = () => {
 
                   <div className="mt-6 space-y-4">
                     {cart.length === 0 ? (
-                      <div className="text-center py-20">
+                      <div className="text-center py-20 animate-fade-in">
                         <Icon name="ShoppingCart" size={64} className="mx-auto mb-4 text-gray-700" />
                         <p className="text-gray-400 text-lg">Корзина пуста</p>
                         <p className="text-gray-600 text-sm mt-2">Добавьте товары для оформления заказа</p>
                       </div>
                     ) : (
                       <>
-                        <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
-                          {cart.map(item => (
-                            <Card key={item.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
+                        <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                          {cart.map((item, index) => (
+                            <Card key={item.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                               <CardContent className="p-4">
                                 <div className="flex gap-4">
                                   <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-600/20 to-blue-600/20 flex items-center justify-center flex-shrink-0">
@@ -485,16 +483,16 @@ const Index = () => {
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          className="h-6 w-6 p-0 text-white hover:bg-white/10"
+                                          className="h-6 w-6 p-0 text-white hover:bg-white/10 transition-colors"
                                           onClick={() => updateQuantity(item.id, -1)}
                                         >
                                           <Icon name="Minus" size={12} />
                                         </Button>
-                                        <span className="text-white text-sm w-6 text-center">{item.quantity}</span>
+                                        <span className="text-white text-sm w-6 text-center font-semibold">{item.quantity}</span>
                                         <Button
                                           size="sm"
                                           variant="ghost"
-                                          className="h-6 w-6 p-0 text-white hover:bg-white/10"
+                                          className="h-6 w-6 p-0 text-white hover:bg-white/10 transition-colors"
                                           onClick={() => updateQuantity(item.id, 1)}
                                         >
                                           <Icon name="Plus" size={12} />
@@ -506,7 +504,7 @@ const Index = () => {
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="text-gray-500 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 p-0"
+                                    className="text-gray-500 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 p-0 transition-all duration-200"
                                     onClick={() => removeFromCart(item.id)}
                                   >
                                     <Icon name="X" size={16} />
@@ -523,11 +521,11 @@ const Index = () => {
                               placeholder="Промокод"
                               value={promoCode}
                               onChange={(e) => setPromoCode(e.target.value)}
-                              className="bg-white/5 border-white/10 text-white placeholder:text-gray-600"
+                              className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 transition-all duration-200 focus:border-purple-500/50"
                             />
                             <Button
                               onClick={applyPromoCode}
-                              className="bg-white/10 hover:bg-white/20 text-white"
+                              className="bg-white/10 hover:bg-white/20 text-white transition-all duration-200"
                             >
                               Применить
                             </Button>
@@ -538,12 +536,13 @@ const Index = () => {
                             <span className="text-3xl font-bold text-white">{getTotalPrice()}₽</span>
                           </div>
 
-                          <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold h-12 text-base">
+                          <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold h-12 text-base transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50">
                             Оформить заказ
                             <Icon name="ArrowRight" size={18} className="ml-2" />
                           </Button>
                           
                           <p className="text-xs text-center text-gray-500">
+                            <Icon name="Zap" size={12} className="inline mr-1 text-yellow-500" />
                             Доставка мгновенно на email
                           </p>
                         </div>
@@ -555,7 +554,7 @@ const Index = () => {
 
               <Button
                 variant="ghost"
-                className="lg:hidden text-gray-300 hover:text-white hover:bg-white/5"
+                className="lg:hidden text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 <Icon name={mobileMenuOpen ? "X" : "Menu"} size={24} />
@@ -565,18 +564,21 @@ const Index = () => {
 
           {mobileMenuOpen && (
             <div className="lg:hidden border-t border-white/10 py-4 space-y-2 animate-fade-in">
-              <Input
-                type="text"
-                placeholder="Поиск..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 mb-3"
-              />
+              <div className="relative mb-3">
+                <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <Input
+                  type="text"
+                  placeholder="Поиск..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 transition-all duration-200"
+                />
+              </div>
               {categories.map(cat => (
                 <Button
                   key={cat.id}
                   variant="ghost"
-                  className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5"
+                  className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200"
                   onClick={() => {
                     setSelectedCategory(cat.id);
                     setMobileMenuOpen(false);
@@ -592,7 +594,7 @@ const Index = () => {
       </header>
 
       <div className="bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20 border-b border-white/5">
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="max-w-3xl">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 animate-fade-in">
               Экосистема для геймеров
@@ -601,18 +603,18 @@ const Index = () => {
               Огромный ассортимент, низкие цены, поддержка 24/7
             </p>
             <div className="flex flex-wrap gap-6 text-sm animate-fade-in" style={{ animationDelay: '200ms' }}>
-              <div className="flex items-center gap-2">
+              <button className="flex items-center gap-2 hover:scale-105 transition-transform duration-200">
                 <Icon name="Zap" size={18} className="text-yellow-500" />
                 <span className="text-gray-300">Мгновенная доставка</span>
-              </div>
-              <div className="flex items-center gap-2">
+              </button>
+              <button className="flex items-center gap-2 hover:scale-105 transition-transform duration-200">
                 <Icon name="Shield" size={18} className="text-green-500" />
                 <span className="text-gray-300">Гарантия качества</span>
-              </div>
-              <div className="flex items-center gap-2">
+              </button>
+              <button className="flex items-center gap-2 hover:scale-105 transition-transform duration-200">
                 <Icon name="Headphones" size={18} className="text-blue-500" />
                 <span className="text-gray-300">Поддержка 24/7</span>
-              </div>
+              </button>
             </div>
           </div>
         </div>
@@ -630,8 +632,8 @@ const Index = () => {
                   onClick={() => setSelectedPlatform(platform.id)}
                   className={
                     selectedPlatform === platform.id
-                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0 hover:from-purple-500 hover:to-blue-500"
-                      : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0 hover:from-purple-500 hover:to-blue-500 transition-all duration-300 shadow-lg shadow-purple-500/30"
+                      : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white hover:border-purple-500/50 transition-all duration-200"
                   }
                 >
                   <Icon name={platform.icon as any} size={16} className="mr-2" />
@@ -642,25 +644,25 @@ const Index = () => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="bg-white/5 border-white/10 text-gray-300 hover:bg-white/10">
+                <Button variant="outline" size="sm" className="bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 transition-all duration-200">
                   <Icon name="ArrowUpDown" size={16} className="mr-2" />
                   Сортировка
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-[#1A1A24] border-white/10">
-                <DropdownMenuItem onClick={() => setSortBy('popular')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+              <DropdownMenuContent className="bg-[#1A1A24] border-white/10 animate-in fade-in-0 zoom-in-95">
+                <DropdownMenuItem onClick={() => setSortBy('popular')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer transition-colors">
                   По популярности
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy('price-asc')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+                <DropdownMenuItem onClick={() => setSortBy('price-asc')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer transition-colors">
                   Цена: по возрастанию
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy('price-desc')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+                <DropdownMenuItem onClick={() => setSortBy('price-desc')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer transition-colors">
                   Цена: по убыванию
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy('rating')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+                <DropdownMenuItem onClick={() => setSortBy('rating')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer transition-colors">
                   По рейтингу
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy('newest')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+                <DropdownMenuItem onClick={() => setSortBy('newest')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer transition-colors">
                   Сначала новые
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -676,8 +678,8 @@ const Index = () => {
                 onClick={() => setSelectedCategory(category.id)}
                 className={
                   selectedCategory === category.id
-                    ? "bg-white/10 text-white hover:bg-white/20"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    ? "bg-white/10 text-white hover:bg-white/20 transition-all duration-200"
+                    : "text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200"
                 }
               >
                 <Icon name={category.icon as any} size={14} className="mr-1.5" />
@@ -691,17 +693,17 @@ const Index = () => {
           {sortedProducts.map((product, index) => (
             <Card
               key={product.id}
-              className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-purple-500/50 transition-all duration-300 cursor-pointer group overflow-hidden animate-fade-in"
+              className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 cursor-pointer group overflow-hidden animate-fade-in hover:-translate-y-1"
               style={{ animationDelay: `${index * 30}ms` }}
               onClick={() => setSelectedProduct(product)}
             >
               <CardContent className="p-0">
                 <div className="relative aspect-[4/3] bg-gradient-to-br from-purple-900/30 to-blue-900/30 flex items-center justify-center overflow-hidden">
-                  <Icon name="Package" size={48} className="text-white/10 group-hover:scale-110 transition-transform duration-500" />
+                  <Icon name="Package" size={48} className="text-white/10 group-hover:scale-125 transition-all duration-700 ease-out" />
                   
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {product.badges.map(badge => (
-                      <Badge key={badge} className={`${getBadgeStyle(badge)} text-xs px-2 py-0.5 font-semibold border-0`}>
+                      <Badge key={badge} className={`${getBadgeStyle(badge)} text-xs px-2 py-0.5 font-semibold border-0 shadow-lg`}>
                         {getBadgeText(badge)}
                       </Badge>
                     ))}
@@ -724,7 +726,7 @@ const Index = () => {
 
                 <div className="p-4 space-y-3">
                   <div>
-                    <h3 className="font-semibold text-white text-base line-clamp-1 group-hover:text-purple-400 transition-colors">
+                    <h3 className="font-semibold text-white text-base line-clamp-1 group-hover:text-purple-400 transition-colors duration-200">
                       {product.name}
                     </h3>
                     <p className="text-xs text-gray-500 mt-1 line-clamp-2">{product.description}</p>
@@ -758,7 +760,7 @@ const Index = () => {
                         e.stopPropagation();
                         addToCart(product);
                       }}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white border-0 h-9"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white border-0 h-9 transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50"
                     >
                       <Icon name="ShoppingCart" size={14} className="mr-1" />
                       Купить
@@ -771,7 +773,7 @@ const Index = () => {
         </div>
 
         {sortedProducts.length === 0 && (
-          <div className="text-center py-20">
+          <div className="text-center py-20 animate-fade-in">
             <Icon name="Search" size={64} className="mx-auto mb-4 text-gray-700" />
             <p className="text-xl text-gray-400">Товары не найдены</p>
             <p className="text-gray-600 mt-2">Попробуйте изменить фильтры</p>
@@ -780,7 +782,7 @@ const Index = () => {
       </div>
 
       <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
-        <DialogContent className="bg-[#1A1A24] border-white/10 text-white max-w-2xl">
+        <DialogContent className="bg-[#1A1A24] border-white/10 text-white max-w-2xl animate-in fade-in-0 zoom-in-95">
           {selectedProduct && (
             <>
               <DialogHeader>
@@ -791,8 +793,8 @@ const Index = () => {
               </DialogHeader>
 
               <div className="space-y-4">
-                <div className="aspect-video bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-lg flex items-center justify-center">
-                  <Icon name="Package" size={80} className="text-white/20" />
+                <div className="aspect-video bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-lg flex items-center justify-center group">
+                  <Icon name="Package" size={80} className="text-white/20 group-hover:scale-110 transition-transform duration-500" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -837,7 +839,7 @@ const Index = () => {
                       addToCart(selectedProduct);
                       setSelectedProduct(null);
                     }}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white h-12 px-8"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white h-12 px-8 transition-all duration-300 shadow-lg shadow-purple-500/30"
                   >
                     <Icon name="ShoppingCart" size={18} className="mr-2" />
                     Добавить в корзину
@@ -850,52 +852,52 @@ const Index = () => {
       </Dialog>
 
       <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
-        <DialogContent className="bg-[#1A1A24] border-white/10 text-white">
+        <DialogContent className="bg-[#1A1A24] border-white/10 text-white animate-in fade-in-0 zoom-in-95">
           <DialogHeader>
             <DialogTitle className="text-2xl">Вход в аккаунт</DialogTitle>
           </DialogHeader>
 
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-white/5">
-              <TabsTrigger value="login" className="data-[state=active]:bg-purple-600">
+              <TabsTrigger value="login" className="data-[state=active]:bg-purple-600 transition-all duration-200">
                 Войти
               </TabsTrigger>
-              <TabsTrigger value="register" className="data-[state=active]:bg-purple-600">
+              <TabsTrigger value="register" className="data-[state=active]:bg-purple-600 transition-all duration-200">
                 Регистрация
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="login" className="space-y-4">
+            <TabsContent value="login" className="space-y-4 animate-fade-in">
               <Input
                 type="email"
                 placeholder="Email"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white/5 border-white/10 text-white transition-all duration-200 focus:border-purple-500/50"
               />
               <Input
                 type="password"
                 placeholder="Пароль"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white/5 border-white/10 text-white transition-all duration-200 focus:border-purple-500/50"
               />
-              <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500">
+              <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all duration-300 shadow-lg shadow-purple-500/30">
                 Войти
               </Button>
             </TabsContent>
-            <TabsContent value="register" className="space-y-4">
+            <TabsContent value="register" className="space-y-4 animate-fade-in">
               <Input
                 type="email"
                 placeholder="Email"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white/5 border-white/10 text-white transition-all duration-200 focus:border-purple-500/50"
               />
               <Input
                 type="password"
                 placeholder="Пароль"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white/5 border-white/10 text-white transition-all duration-200 focus:border-purple-500/50"
               />
               <Input
                 type="password"
                 placeholder="Повторите пароль"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-white/5 border-white/10 text-white transition-all duration-200 focus:border-purple-500/50"
               />
-              <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500">
+              <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all duration-300 shadow-lg shadow-purple-500/30">
                 Зарегистрироваться
               </Button>
             </TabsContent>
@@ -907,20 +909,20 @@ const Index = () => {
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+              <button className="flex items-center gap-2 mb-4 group" onClick={() => { setSelectedCategory('all'); setSelectedPlatform('all'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
                   <Icon name="ShoppingBag" size={18} className="text-white" />
                 </div>
                 <h3 className="text-white font-bold text-lg">KUPIKOD</h3>
-              </div>
+              </button>
               <p className="text-gray-500 text-sm leading-relaxed">
                 Экосистема для геймеров. Огромный ассортимент цифровых товаров по низким ценам.
               </p>
               <div className="flex gap-3 mt-4">
-                <Button size="sm" variant="ghost" className="text-gray-500 hover:text-purple-400 hover:bg-white/5 h-9 w-9 p-0">
+                <Button size="sm" variant="ghost" className="text-gray-500 hover:text-purple-400 hover:bg-white/5 h-9 w-9 p-0 transition-all duration-200">
                   <Icon name="MessageCircle" size={18} />
                 </Button>
-                <Button size="sm" variant="ghost" className="text-gray-500 hover:text-purple-400 hover:bg-white/5 h-9 w-9 p-0">
+                <Button size="sm" variant="ghost" className="text-gray-500 hover:text-purple-400 hover:bg-white/5 h-9 w-9 p-0 transition-all duration-200">
                   <Icon name="Mail" size={18} />
                 </Button>
               </div>
@@ -929,38 +931,38 @@ const Index = () => {
             <div>
               <h4 className="text-white font-semibold mb-4">Каталог</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Игры</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Пополнения</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Подписки</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Подарочные карты</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">DLC</a></li>
+                <li><button onClick={() => { setSelectedCategory('games'); window.scrollTo({ top: 400, behavior: 'smooth' }); }} className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Игры</button></li>
+                <li><button onClick={() => { setSelectedCategory('topups'); window.scrollTo({ top: 400, behavior: 'smooth' }); }} className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Пополнения</button></li>
+                <li><button onClick={() => { setSelectedCategory('subscriptions'); window.scrollTo({ top: 400, behavior: 'smooth' }); }} className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Подписки</button></li>
+                <li><button onClick={() => { setSelectedCategory('giftcards'); window.scrollTo({ top: 400, behavior: 'smooth' }); }} className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Подарочные карты</button></li>
+                <li><button onClick={() => { setSelectedCategory('dlc'); window.scrollTo({ top: 400, behavior: 'smooth' }); }} className="text-gray-500 hover:text-purple-400 transition-colors duration-200">DLC</button></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-white font-semibold mb-4">Поддержка</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">FAQ</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Как купить</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Доставка</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Возврат</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Контакты</a></li>
+                <li><button className="text-gray-500 hover:text-purple-400 transition-colors duration-200">FAQ</button></li>
+                <li><button className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Как купить</button></li>
+                <li><button className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Доставка</button></li>
+                <li><button className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Возврат</button></li>
+                <li><button className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Контакты</button></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-white font-semibold mb-4">Информация</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">О компании</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Партнерам</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Пользовательское соглашение</a></li>
-                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Политика конфиденциальности</a></li>
+                <li><button className="text-gray-500 hover:text-purple-400 transition-colors duration-200">О компании</button></li>
+                <li><button className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Партнерам</button></li>
+                <li><button className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Пользовательское соглашение</button></li>
+                <li><button className="text-gray-500 hover:text-purple-400 transition-colors duration-200">Политика конфиденциальности</button></li>
               </ul>
               <div className="mt-6">
                 <p className="text-gray-500 text-sm mb-2">Поддержка 24/7</p>
-                <a href="mailto:support@kupikod.com" className="text-purple-400 text-sm hover:text-purple-300">
+                <button className="text-purple-400 text-sm hover:text-purple-300 transition-colors duration-200">
                   support@kupikod.com
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -968,11 +970,11 @@ const Index = () => {
           <div className="border-t border-white/5 mt-10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-600 text-sm">© 2024 KUPIKOD. Все права защищены.</p>
             <div className="flex items-center gap-3">
-              <Badge variant="outline" className="border-gray-700 text-gray-500 text-xs">
+              <Badge variant="outline" className="border-gray-700 text-gray-500 text-xs hover:border-purple-500/50 transition-colors duration-200">
                 <Icon name="Shield" size={12} className="mr-1" />
                 Безопасные платежи
               </Badge>
-              <Badge variant="outline" className="border-gray-700 text-gray-500 text-xs">
+              <Badge variant="outline" className="border-gray-700 text-gray-500 text-xs hover:border-purple-500/50 transition-colors duration-200">
                 <Icon name="Zap" size={12} className="mr-1" />
                 Мгновенная доставка
               </Badge>
