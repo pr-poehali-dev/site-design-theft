@@ -1,9 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,9 +26,15 @@ interface Product {
   name: string;
   category: string;
   price: number;
+  originalPrice?: number;
   image: string;
   description: string;
-  platform?: string;
+  platform: string;
+  badges: string[];
+  rating: number;
+  reviews: number;
+  deliveryTime: string;
+  region: string;
 }
 
 interface CartItem extends Product {
@@ -25,14 +45,41 @@ const Index = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedPlatform, setSelectedPlatform] = useState('all');
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
+  const [sortBy, setSortBy] = useState('popular');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [isScrolled, setIsScrolled] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const platforms = [
+    { id: 'all', name: 'Все платформы', icon: 'Grid3x3' },
+    { id: 'steam', name: 'Steam', icon: 'Gamepad2' },
+    { id: 'playstation', name: 'PlayStation', icon: 'Gamepad' },
+    { id: 'xbox', name: 'Xbox', icon: 'Box' },
+    { id: 'nintendo', name: 'Nintendo', icon: 'Radio' },
+    { id: 'epicgames', name: 'Epic Games', icon: 'Trophy' },
+    { id: 'battlenet', name: 'Battle.net', icon: 'Swords' },
+  ];
+
   const categories = [
-    { id: 'all', name: 'Все товары', icon: 'Grid3x3' },
+    { id: 'all', name: 'Все товары', icon: 'LayoutGrid' },
     { id: 'games', name: 'Игры', icon: 'Gamepad2' },
+    { id: 'topups', name: 'Пополнения', icon: 'Wallet' },
     { id: 'subscriptions', name: 'Подписки', icon: 'CreditCard' },
     { id: 'giftcards', name: 'Подарочные карты', icon: 'Gift' },
-    { id: 'software', name: 'Софт', icon: 'Download' }
+    { id: 'dlc', name: 'DLC', icon: 'PackagePlus' },
   ];
 
   const products: Product[] = [
@@ -41,27 +88,43 @@ const Index = () => {
       name: 'Cyberpunk 2077',
       category: 'games',
       price: 2499,
+      originalPrice: 3999,
       image: '/placeholder.svg',
-      description: 'Ключ для активации',
-      platform: 'Steam'
+      description: 'Ключ для активации в Steam. Мгновенная доставка на почту.',
+      platform: 'steam',
+      badges: ['popular', 'discount'],
+      rating: 4.8,
+      reviews: 1523,
+      deliveryTime: 'Мгновенно',
+      region: 'RU/CIS'
     },
     {
       id: 2,
-      name: 'Xbox Game Pass',
+      name: 'Xbox Game Pass Ultimate',
       category: 'subscriptions',
       price: 699,
       image: '/placeholder.svg',
-      description: '1 месяц подписки',
-      platform: 'Xbox'
+      description: '1 месяц подписки Xbox Game Pass Ultimate',
+      platform: 'xbox',
+      badges: ['popular', 'new'],
+      rating: 4.9,
+      reviews: 2341,
+      deliveryTime: 'До 5 минут',
+      region: 'Россия'
     },
     {
       id: 3,
-      name: 'PlayStation Store',
+      name: 'PlayStation Store 1000₽',
       category: 'giftcards',
-      price: 1000,
+      price: 1050,
       image: '/placeholder.svg',
-      description: 'Подарочная карта 1000₽',
-      platform: 'PS5'
+      description: 'Подарочная карта PlayStation Store номиналом 1000₽',
+      platform: 'playstation',
+      badges: ['commission-free'],
+      rating: 4.7,
+      reviews: 892,
+      deliveryTime: 'Мгновенно',
+      region: 'RU'
     },
     {
       id: 4,
@@ -69,17 +132,28 @@ const Index = () => {
       category: 'subscriptions',
       price: 169,
       image: '/placeholder.svg',
-      description: '1 месяц подписки',
-      platform: 'Spotify'
+      description: '1 месяц подписки Spotify Premium',
+      platform: 'steam',
+      badges: ['popular'],
+      rating: 4.6,
+      reviews: 1234,
+      deliveryTime: 'Мгновенно',
+      region: 'Россия'
     },
     {
       id: 5,
       name: 'Red Dead Redemption 2',
       category: 'games',
       price: 1999,
+      originalPrice: 2999,
       image: '/placeholder.svg',
-      description: 'Ключ для активации',
-      platform: 'Steam'
+      description: 'Ключ активации для Steam',
+      platform: 'steam',
+      badges: ['discount'],
+      rating: 4.9,
+      reviews: 3421,
+      deliveryTime: 'Мгновенно',
+      region: 'RU/CIS'
     },
     {
       id: 6,
@@ -87,27 +161,100 @@ const Index = () => {
       category: 'subscriptions',
       price: 799,
       image: '/placeholder.svg',
-      description: '1 месяц подписки',
-      platform: 'Netflix'
+      description: '1 месяц подписки Netflix Premium',
+      platform: 'steam',
+      badges: ['new'],
+      rating: 4.5,
+      reviews: 567,
+      deliveryTime: 'До 10 минут',
+      region: 'Россия'
     },
     {
       id: 7,
-      name: 'Steam Wallet',
-      category: 'giftcards',
+      name: 'Steam Wallet 500₽',
+      category: 'topups',
       price: 500,
       image: '/placeholder.svg',
-      description: 'Подарочная карта 500₽',
-      platform: 'Steam'
+      description: 'Пополнение кошелька Steam на 500 рублей',
+      platform: 'steam',
+      badges: ['commission-free', 'popular'],
+      rating: 5.0,
+      reviews: 4521,
+      deliveryTime: 'Мгновенно',
+      region: 'RU'
     },
     {
       id: 8,
-      name: 'Microsoft Office 365',
-      category: 'software',
-      price: 4999,
+      name: 'Elden Ring',
+      category: 'games',
+      price: 2799,
+      originalPrice: 3499,
       image: '/placeholder.svg',
-      description: 'Годовая лицензия',
-      platform: 'Windows'
-    }
+      description: 'Ключ активации Steam',
+      platform: 'steam',
+      badges: ['discount', 'popular'],
+      rating: 4.9,
+      reviews: 2891,
+      deliveryTime: 'Мгновенно',
+      region: 'RU/CIS'
+    },
+    {
+      id: 9,
+      name: 'Genshin Impact Crystal',
+      category: 'topups',
+      price: 1299,
+      image: '/placeholder.svg',
+      description: 'Пополнение 1980 кристаллов Genshin Impact',
+      platform: 'epicgames',
+      badges: ['popular'],
+      rating: 4.8,
+      reviews: 1823,
+      deliveryTime: 'До 5 минут',
+      region: 'Все регионы'
+    },
+    {
+      id: 10,
+      name: 'Baldurs Gate 3',
+      category: 'games',
+      price: 3299,
+      image: '/placeholder.svg',
+      description: 'Ключ активации для Steam',
+      platform: 'steam',
+      badges: ['new', 'popular'],
+      rating: 5.0,
+      reviews: 4231,
+      deliveryTime: 'Мгновенно',
+      region: 'RU/CIS'
+    },
+    {
+      id: 11,
+      name: 'Hogwarts Legacy',
+      category: 'games',
+      price: 2899,
+      originalPrice: 3999,
+      image: '/placeholder.svg',
+      description: 'Ключ для Steam',
+      platform: 'steam',
+      badges: ['discount'],
+      rating: 4.7,
+      reviews: 1923,
+      deliveryTime: 'Мгновенно',
+      region: 'RU/CIS'
+    },
+    {
+      id: 12,
+      name: 'Nintendo eShop 1000₽',
+      category: 'giftcards',
+      price: 1100,
+      image: '/placeholder.svg',
+      description: 'Подарочная карта Nintendo eShop',
+      platform: 'nintendo',
+      badges: ['commission-free'],
+      rating: 4.6,
+      reviews: 723,
+      deliveryTime: 'Мгновенно',
+      region: 'RU'
+    },
   ];
 
   const addToCart = (product: Product) => {
@@ -124,13 +271,18 @@ const Index = () => {
     }
 
     toast({
-      title: "Товар добавлен в корзину",
-      description: product.name
+      title: "✓ Товар добавлен в корзину",
+      description: product.name,
+      duration: 2000,
     });
   };
 
   const removeFromCart = (productId: number) => {
     setCart(cart.filter(item => item.id !== productId));
+    toast({
+      title: "Товар удален из корзины",
+      duration: 2000,
+    });
   };
 
   const updateQuantity = (productId: number, delta: number) => {
@@ -147,107 +299,217 @@ const Index = () => {
     return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
+  const applyPromoCode = () => {
+    if (promoCode.trim()) {
+      toast({
+        title: "Промокод применен!",
+        description: `Скидка 10% по промокоду "${promoCode}"`,
+        duration: 3000,
+      });
+    }
+  };
+
   const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    const matchesPlatform = selectedPlatform === 'all' || product.platform === selectedPlatform;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
+    return matchesCategory && matchesPlatform && matchesSearch && matchesPrice;
   });
 
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
+      case 'rating':
+        return b.rating - a.rating;
+      case 'newest':
+        return b.id - a.id;
+      default:
+        return b.reviews - a.reviews;
+    }
+  });
+
+  const getBadgeStyle = (badge: string) => {
+    switch (badge) {
+      case 'popular':
+        return 'bg-yellow-500 text-black';
+      case 'new':
+        return 'bg-green-500 text-white';
+      case 'discount':
+        return 'bg-red-500 text-white';
+      case 'commission-free':
+        return 'bg-purple-500 text-white';
+      default:
+        return 'bg-gray-500 text-white';
+    }
+  };
+
+  const getBadgeText = (badge: string) => {
+    switch (badge) {
+      case 'popular':
+        return 'Популярное';
+      case 'new':
+        return 'Новое';
+      case 'discount':
+        return 'Скидка';
+      case 'commission-free':
+        return '0% комиссия';
+      default:
+        return badge;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1A1A2E] via-[#16213E] to-[#0F3460]">
-      <header className="sticky top-0 z-50 bg-[#1A1A2E]/95 backdrop-blur-md border-b border-white/10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <Icon name="ShoppingBag" size={24} className="text-white" />
+    <div className="min-h-screen bg-[#0A0A0F]">
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0A0A0F]/98 backdrop-blur-lg shadow-lg' : 'bg-[#0A0A0F]'} border-b border-white/5`}>
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-2 cursor-pointer group">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center transform group-hover:scale-105 transition-transform">
+                  <Icon name="ShoppingBag" size={20} className="text-white" />
+                </div>
+                <h1 className="text-xl font-bold text-white tracking-tight hidden sm:block">KUPIKOD</h1>
               </div>
-              <h1 className="text-2xl font-bold text-white font-heading">DIGITAL STORE</h1>
+
+              <nav className="hidden lg:flex items-center gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/5">
+                      Платформы
+                      <Icon name="ChevronDown" size={16} className="ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-[#1A1A24] border-white/10">
+                    {platforms.slice(1).map(platform => (
+                      <DropdownMenuItem
+                        key={platform.id}
+                        onClick={() => setSelectedPlatform(platform.id)}
+                        className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer"
+                      >
+                        <Icon name={platform.icon as any} size={16} className="mr-2" />
+                        {platform.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button
+                  variant="ghost"
+                  className="text-gray-300 hover:text-white hover:bg-white/5"
+                  onClick={() => setSelectedCategory('games')}
+                >
+                  Игры
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="text-gray-300 hover:text-white hover:bg-white/5"
+                  onClick={() => setSelectedCategory('topups')}
+                >
+                  Пополнения
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="text-gray-300 hover:text-white hover:bg-white/5"
+                  onClick={() => setSelectedCategory('subscriptions')}
+                >
+                  Подписки
+                </Button>
+              </nav>
             </div>
 
-            <div className="flex-1 max-w-xl mx-4">
+            <div className="flex-1 max-w-md mx-4 hidden md:block">
               <div className="relative">
-                <Icon name="Search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <Input
                   type="text"
-                  placeholder="Поиск товаров..."
+                  placeholder="Поиск игр, подписок..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 focus:border-purple-500/50 transition-all"
                 />
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" className="text-white hover:bg-white/10">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                className="text-gray-300 hover:text-white hover:bg-white/5 hidden sm:flex"
+                onClick={() => setShowAuthModal(true)}
+              >
                 <Icon name="User" size={20} />
+                <span className="ml-2 hidden lg:inline">Войти</span>
               </Button>
-              
+
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" className="relative text-white hover:bg-white/10">
+                  <Button variant="ghost" className="relative text-gray-300 hover:text-white hover:bg-white/5">
                     <Icon name="ShoppingCart" size={20} />
                     {cart.length > 0 && (
-                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary text-white">
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-purple-600 text-white text-xs border-0 animate-scale-in">
                         {cart.length}
                       </Badge>
                     )}
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="w-full sm:max-w-lg bg-[#1A1A2E] border-white/10">
+                <SheetContent className="w-full sm:max-w-lg bg-[#0A0A0F] border-white/10">
                   <SheetHeader>
-                    <SheetTitle className="text-white font-heading">Корзина</SheetTitle>
+                    <SheetTitle className="text-white text-xl">Корзина</SheetTitle>
                   </SheetHeader>
-                  
-                  <div className="mt-8 space-y-4">
+
+                  <div className="mt-6 space-y-4">
                     {cart.length === 0 ? (
-                      <div className="text-center py-12 text-gray-400">
-                        <Icon name="ShoppingCart" size={48} className="mx-auto mb-4 opacity-50" />
-                        <p>Корзина пуста</p>
+                      <div className="text-center py-20">
+                        <Icon name="ShoppingCart" size={64} className="mx-auto mb-4 text-gray-700" />
+                        <p className="text-gray-400 text-lg">Корзина пуста</p>
+                        <p className="text-gray-600 text-sm mt-2">Добавьте товары для оформления заказа</p>
                       </div>
                     ) : (
                       <>
-                        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                        <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
                           {cart.map(item => (
-                            <Card key={item.id} className="bg-white/5 border-white/10">
+                            <Card key={item.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
                               <CardContent className="p-4">
                                 <div className="flex gap-4">
-                                  <div className="w-20 h-20 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                                    <Icon name="Package" size={32} className="text-gray-400" />
+                                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-600/20 to-blue-600/20 flex items-center justify-center flex-shrink-0">
+                                    <Icon name="Package" size={28} className="text-purple-400" />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-white truncate">{item.name}</h3>
-                                    <p className="text-sm text-gray-400">{item.description}</p>
-                                    <div className="flex items-center gap-4 mt-2">
-                                      <div className="flex items-center gap-2 bg-white/5 rounded-lg p-1">
-                                        <Button 
-                                          size="sm" 
-                                          variant="ghost" 
+                                    <h3 className="font-semibold text-white text-sm truncate">{item.name}</h3>
+                                    <p className="text-xs text-gray-500 mt-0.5">{item.platform.toUpperCase()}</p>
+                                    <div className="flex items-center gap-3 mt-2">
+                                      <div className="flex items-center gap-1 bg-white/5 rounded-lg p-0.5">
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
                                           className="h-6 w-6 p-0 text-white hover:bg-white/10"
                                           onClick={() => updateQuantity(item.id, -1)}
                                         >
-                                          <Icon name="Minus" size={14} />
+                                          <Icon name="Minus" size={12} />
                                         </Button>
-                                        <span className="text-white w-8 text-center">{item.quantity}</span>
-                                        <Button 
-                                          size="sm" 
-                                          variant="ghost" 
+                                        <span className="text-white text-sm w-6 text-center">{item.quantity}</span>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
                                           className="h-6 w-6 p-0 text-white hover:bg-white/10"
                                           onClick={() => updateQuantity(item.id, 1)}
                                         >
-                                          <Icon name="Plus" size={14} />
+                                          <Icon name="Plus" size={12} />
                                         </Button>
                                       </div>
-                                      <p className="font-bold text-primary">{item.price * item.quantity}₽</p>
+                                      <p className="font-bold text-purple-400 text-sm">{item.price * item.quantity}₽</p>
                                     </div>
                                   </div>
                                   <Button
                                     size="sm"
                                     variant="ghost"
-                                    className="text-gray-400 hover:text-red-500 hover:bg-red-500/10"
+                                    className="text-gray-500 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 p-0"
                                     onClick={() => removeFromCart(item.id)}
                                   >
-                                    <Icon name="Trash2" size={18} />
+                                    <Icon name="X" size={16} />
                                   </Button>
                                 </div>
                               </CardContent>
@@ -255,139 +517,466 @@ const Index = () => {
                           ))}
                         </div>
 
-                        <div className="border-t border-white/10 pt-4 space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-400">Итого:</span>
-                            <span className="text-2xl font-bold text-white">{getTotalPrice()}₽</span>
+                        <div className="space-y-3 pt-4 border-t border-white/10">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Промокод"
+                              value={promoCode}
+                              onChange={(e) => setPromoCode(e.target.value)}
+                              className="bg-white/5 border-white/10 text-white placeholder:text-gray-600"
+                            />
+                            <Button
+                              onClick={applyPromoCode}
+                              className="bg-white/10 hover:bg-white/20 text-white"
+                            >
+                              Применить
+                            </Button>
                           </div>
-                          <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-semibold">
+
+                          <div className="flex justify-between items-center py-3">
+                            <span className="text-gray-400">Итого:</span>
+                            <span className="text-3xl font-bold text-white">{getTotalPrice()}₽</span>
+                          </div>
+
+                          <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold h-12 text-base">
                             Оформить заказ
                             <Icon name="ArrowRight" size={18} className="ml-2" />
                           </Button>
+                          
+                          <p className="text-xs text-center text-gray-500">
+                            Доставка мгновенно на email
+                          </p>
                         </div>
                       </>
                     )}
                   </div>
                 </SheetContent>
               </Sheet>
+
+              <Button
+                variant="ghost"
+                className="lg:hidden text-gray-300 hover:text-white hover:bg-white/5"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                <Icon name={mobileMenuOpen ? "X" : "Menu"} size={24} />
+              </Button>
             </div>
           </div>
+
+          {mobileMenuOpen && (
+            <div className="lg:hidden border-t border-white/10 py-4 space-y-2 animate-fade-in">
+              <Input
+                type="text"
+                placeholder="Поиск..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 mb-3"
+              />
+              {categories.map(cat => (
+                <Button
+                  key={cat.id}
+                  variant="ghost"
+                  className="w-full justify-start text-gray-300 hover:text-white hover:bg-white/5"
+                  onClick={() => {
+                    setSelectedCategory(cat.id);
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Icon name={cat.icon as any} size={18} className="mr-2" />
+                  {cat.name}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
+      <div className="bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20 border-b border-white/5">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-3xl">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 animate-fade-in">
+              Экосистема для геймеров
+            </h2>
+            <p className="text-xl text-gray-400 mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
+              Огромный ассортимент, низкие цены, поддержка 24/7
+            </p>
+            <div className="flex flex-wrap gap-6 text-sm animate-fade-in" style={{ animationDelay: '200ms' }}>
+              <div className="flex items-center gap-2">
+                <Icon name="Zap" size={18} className="text-yellow-500" />
+                <span className="text-gray-300">Мгновенная доставка</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Icon name="Shield" size={18} className="text-green-500" />
+                <span className="text-gray-300">Гарантия качества</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Icon name="Headphones" size={18} className="text-blue-500" />
+                <span className="text-gray-300">Поддержка 24/7</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-3">
+        <div className="mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div className="flex flex-wrap gap-2">
+              {platforms.map(platform => (
+                <Button
+                  key={platform.id}
+                  size="sm"
+                  variant={selectedPlatform === platform.id ? "default" : "outline"}
+                  onClick={() => setSelectedPlatform(platform.id)}
+                  className={
+                    selectedPlatform === platform.id
+                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0 hover:from-purple-500 hover:to-blue-500"
+                      : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white"
+                  }
+                >
+                  <Icon name={platform.icon as any} size={16} className="mr-2" />
+                  {platform.name}
+                </Button>
+              ))}
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-white/5 border-white/10 text-gray-300 hover:bg-white/10">
+                  <Icon name="ArrowUpDown" size={16} className="mr-2" />
+                  Сортировка
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-[#1A1A24] border-white/10">
+                <DropdownMenuItem onClick={() => setSortBy('popular')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+                  По популярности
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('price-asc')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+                  Цена: по возрастанию
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('price-desc')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+                  Цена: по убыванию
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('rating')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+                  По рейтингу
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy('newest')} className="text-gray-300 hover:text-white hover:bg-white/10 cursor-pointer">
+                  Сначала новые
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
             {categories.map(category => (
               <Button
                 key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
+                size="sm"
+                variant={selectedCategory === category.id ? "default" : "ghost"}
                 onClick={() => setSelectedCategory(category.id)}
                 className={
                   selectedCategory === category.id
-                    ? "bg-gradient-to-r from-primary to-secondary text-white border-0 hover:opacity-90"
-                    : "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                    ? "bg-white/10 text-white hover:bg-white/20"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
                 }
               >
-                <Icon name={category.icon as any} size={18} className="mr-2" />
+                <Icon name={category.icon as any} size={14} className="mr-1.5" />
                 {category.name}
               </Button>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product, index) => (
-            <Card 
-              key={product.id} 
-              className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 animate-fade-in group overflow-hidden backdrop-blur-sm"
-              style={{ animationDelay: `${index * 50}ms` }}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {sortedProducts.map((product, index) => (
+            <Card
+              key={product.id}
+              className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-purple-500/50 transition-all duration-300 cursor-pointer group overflow-hidden animate-fade-in"
+              style={{ animationDelay: `${index * 30}ms` }}
+              onClick={() => setSelectedProduct(product)}
             >
-              <CardHeader className="p-0">
-                <div className="aspect-square bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center relative overflow-hidden">
-                  <Icon name="Package" size={64} className="text-white/20 group-hover:scale-110 transition-transform duration-300" />
-                  {product.platform && (
-                    <Badge className="absolute top-3 right-3 bg-black/50 text-white border-0">
-                      {product.platform}
+              <CardContent className="p-0">
+                <div className="relative aspect-[4/3] bg-gradient-to-br from-purple-900/30 to-blue-900/30 flex items-center justify-center overflow-hidden">
+                  <Icon name="Package" size={48} className="text-white/10 group-hover:scale-110 transition-transform duration-500" />
+                  
+                  <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    {product.badges.map(badge => (
+                      <Badge key={badge} className={`${getBadgeStyle(badge)} text-xs px-2 py-0.5 font-semibold border-0`}>
+                        {getBadgeText(badge)}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-black/60 text-white text-xs border-0 backdrop-blur-sm">
+                      {product.platform.toUpperCase()}
                     </Badge>
-                  )}
+                  </div>
+
+                  <div className="absolute bottom-2 left-2">
+                    <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded px-2 py-1">
+                      <Icon name="Star" size={12} className="text-yellow-500 fill-yellow-500" />
+                      <span className="text-white text-xs font-semibold">{product.rating}</span>
+                      <span className="text-gray-400 text-xs">({product.reviews})</span>
+                    </div>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <CardTitle className="text-lg text-white font-heading mb-2 line-clamp-1">
-                  {product.name}
-                </CardTitle>
-                <p className="text-sm text-gray-400 mb-3">{product.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-primary">{product.price}₽</span>
-                  <Badge variant="outline" className="border-secondary text-secondary">
-                    {categories.find(c => c.id === product.category)?.name}
-                  </Badge>
+
+                <div className="p-4 space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-white text-base line-clamp-1 group-hover:text-purple-400 transition-colors">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{product.description}</p>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Icon name="Clock" size={12} />
+                    <span>{product.deliveryTime}</span>
+                    <span className="text-gray-700">•</span>
+                    <Icon name="MapPin" size={12} />
+                    <span>{product.region}</span>
+                  </div>
+
+                  <div className="flex items-end justify-between pt-2 border-t border-white/5">
+                    <div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold text-white">{product.price}₽</span>
+                        {product.originalPrice && (
+                          <span className="text-sm text-gray-600 line-through">{product.originalPrice}₽</span>
+                        )}
+                      </div>
+                      {product.originalPrice && (
+                        <span className="text-xs text-green-500 font-semibold">
+                          Скидка {Math.round((1 - product.price / product.originalPrice) * 100)}%
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(product);
+                      }}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white border-0 h-9"
+                    >
+                      <Icon name="ShoppingCart" size={14} className="mr-1" />
+                      Купить
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
-              <CardFooter className="p-4 pt-0">
-                <Button 
-                  className="w-full bg-gradient-to-r from-secondary to-primary hover:opacity-90 text-white font-semibold"
-                  onClick={() => addToCart(product)}
-                >
-                  Купить
-                  <Icon name="ShoppingCart" size={18} className="ml-2" />
-                </Button>
-              </CardFooter>
             </Card>
           ))}
         </div>
 
-        {filteredProducts.length === 0 && (
+        {sortedProducts.length === 0 && (
           <div className="text-center py-20">
-            <Icon name="Search" size={64} className="mx-auto mb-4 text-gray-600" />
+            <Icon name="Search" size={64} className="mx-auto mb-4 text-gray-700" />
             <p className="text-xl text-gray-400">Товары не найдены</p>
+            <p className="text-gray-600 mt-2">Попробуйте изменить фильтры</p>
           </div>
         )}
       </div>
 
-      <footer className="bg-[#0F0F1E] border-t border-white/10 mt-20">
+      <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
+        <DialogContent className="bg-[#1A1A24] border-white/10 text-white max-w-2xl">
+          {selectedProduct && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">{selectedProduct.name}</DialogTitle>
+                <DialogDescription className="text-gray-400">
+                  {selectedProduct.description}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div className="aspect-video bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-lg flex items-center justify-center">
+                  <Icon name="Package" size={80} className="text-white/20" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-500 mb-1">Платформа</p>
+                    <p className="text-white font-semibold">{selectedProduct.platform.toUpperCase()}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 mb-1">Доставка</p>
+                    <p className="text-white font-semibold">{selectedProduct.deliveryTime}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 mb-1">Регион</p>
+                    <p className="text-white font-semibold">{selectedProduct.region}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 mb-1">Рейтинг</p>
+                    <div className="flex items-center gap-1">
+                      <Icon name="Star" size={14} className="text-yellow-500 fill-yellow-500" />
+                      <span className="text-white font-semibold">{selectedProduct.rating}</span>
+                      <span className="text-gray-500">({selectedProduct.reviews} отзывов)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-end justify-between pt-4 border-t border-white/10">
+                  <div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-bold text-white">{selectedProduct.price}₽</span>
+                      {selectedProduct.originalPrice && (
+                        <span className="text-lg text-gray-600 line-through">{selectedProduct.originalPrice}₽</span>
+                      )}
+                    </div>
+                    {selectedProduct.originalPrice && (
+                      <span className="text-sm text-green-500 font-semibold">
+                        Скидка {Math.round((1 - selectedProduct.price / selectedProduct.originalPrice) * 100)}%
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => {
+                      addToCart(selectedProduct);
+                      setSelectedProduct(null);
+                    }}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white h-12 px-8"
+                  >
+                    <Icon name="ShoppingCart" size={18} className="mr-2" />
+                    Добавить в корзину
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
+        <DialogContent className="bg-[#1A1A24] border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Вход в аккаунт</DialogTitle>
+          </DialogHeader>
+
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-white/5">
+              <TabsTrigger value="login" className="data-[state=active]:bg-purple-600">
+                Войти
+              </TabsTrigger>
+              <TabsTrigger value="register" className="data-[state=active]:bg-purple-600">
+                Регистрация
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="login" className="space-y-4">
+              <Input
+                type="email"
+                placeholder="Email"
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <Input
+                type="password"
+                placeholder="Пароль"
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500">
+                Войти
+              </Button>
+            </TabsContent>
+            <TabsContent value="register" className="space-y-4">
+              <Input
+                type="email"
+                placeholder="Email"
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <Input
+                type="password"
+                placeholder="Пароль"
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <Input
+                type="password"
+                placeholder="Повторите пароль"
+                className="bg-white/5 border-white/10 text-white"
+              />
+              <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500">
+                Зарегистрироваться
+              </Button>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      <footer className="bg-[#050508] border-t border-white/5 mt-20">
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-white font-heading font-bold mb-4">DIGITAL STORE</h3>
-              <p className="text-gray-400 text-sm">Магазин цифровых товаров. Игры, подписки, софт.</p>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Каталог</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-400 hover:text-primary transition-colors">Игры</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-primary transition-colors">Подписки</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-primary transition-colors">Подарочные карты</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-primary transition-colors">Программы</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Поддержка</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-gray-400 hover:text-primary transition-colors">Помощь</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-primary transition-colors">Доставка</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-primary transition-colors">Возврат</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-primary transition-colors">FAQ</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Контакты</h4>
-              <div className="flex gap-3">
-                <Button size="sm" variant="ghost" className="text-gray-400 hover:text-primary hover:bg-white/10">
-                  <Icon name="Mail" size={18} />
-                </Button>
-                <Button size="sm" variant="ghost" className="text-gray-400 hover:text-primary hover:bg-white/10">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                  <Icon name="ShoppingBag" size={18} className="text-white" />
+                </div>
+                <h3 className="text-white font-bold text-lg">KUPIKOD</h3>
+              </div>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Экосистема для геймеров. Огромный ассортимент цифровых товаров по низким ценам.
+              </p>
+              <div className="flex gap-3 mt-4">
+                <Button size="sm" variant="ghost" className="text-gray-500 hover:text-purple-400 hover:bg-white/5 h-9 w-9 p-0">
                   <Icon name="MessageCircle" size={18} />
                 </Button>
-                <Button size="sm" variant="ghost" className="text-gray-400 hover:text-primary hover:bg-white/10">
-                  <Icon name="Phone" size={18} />
+                <Button size="sm" variant="ghost" className="text-gray-500 hover:text-purple-400 hover:bg-white/5 h-9 w-9 p-0">
+                  <Icon name="Mail" size={18} />
                 </Button>
               </div>
             </div>
+
+            <div>
+              <h4 className="text-white font-semibold mb-4">Каталог</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Игры</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Пополнения</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Подписки</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Подарочные карты</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">DLC</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-semibold mb-4">Поддержка</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">FAQ</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Как купить</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Доставка</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Возврат</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Контакты</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-semibold mb-4">Информация</h4>
+              <ul className="space-y-2 text-sm">
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">О компании</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Партнерам</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Пользовательское соглашение</a></li>
+                <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Политика конфиденциальности</a></li>
+              </ul>
+              <div className="mt-6">
+                <p className="text-gray-500 text-sm mb-2">Поддержка 24/7</p>
+                <a href="mailto:support@kupikod.com" className="text-purple-400 text-sm hover:text-purple-300">
+                  support@kupikod.com
+                </a>
+              </div>
+            </div>
           </div>
-          <div className="border-t border-white/10 mt-8 pt-8 text-center text-sm text-gray-400">
-            <p>© 2024 Digital Store. Все права защищены.</p>
+
+          <div className="border-t border-white/5 mt-10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-600 text-sm">© 2024 KUPIKOD. Все права защищены.</p>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="border-gray-700 text-gray-500 text-xs">
+                <Icon name="Shield" size={12} className="mr-1" />
+                Безопасные платежи
+              </Badge>
+              <Badge variant="outline" className="border-gray-700 text-gray-500 text-xs">
+                <Icon name="Zap" size={12} className="mr-1" />
+                Мгновенная доставка
+              </Badge>
+            </div>
           </div>
         </div>
       </footer>
